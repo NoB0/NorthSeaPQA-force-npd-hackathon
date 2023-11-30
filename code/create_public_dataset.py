@@ -22,14 +22,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--data_dir",
         type=str,
-        required=True,
         default=DATA_DIR,
         help="Directory containing the data.",
     )
     parser.add_argument(
         "--output_dir",
         type=str,
-        required=True,
         default=DATA_DIR,
         help="Directory to save the data.",
     )
@@ -87,21 +85,19 @@ def format_document(passages: pd.DataFrame, doc_id: str) -> Dict[str, Any]:
         formatted_passage = {"context": passage["passage"].iloc[0], "qas": []}
 
         for i, qa in passage.iterrows():
-            answers = (
-                [
-                    {
-                        "text": qa["answer_text"],
-                        "answer_start": qa["answer_span"],
-                    }
-                ]
+            answer = (
+                {
+                    "text": qa["answer_text"],
+                    "answer_start": qa["answer_span"],
+                }
                 if not pd.isna(qa["answer_span"])
-                else []
+                else {}
             )
             formatted_qa = {
                 "question": qa["question"],
                 "id": generate_qid(doc_id, passage_id, i),
-                "answers": answers,
-                "is_impossible": True if len(answers) == 0 else False,
+                "answer": answer,
+                "is_impossible": True if len(answer) > 0 else False,
             }
             formatted_passage["qas"].append(formatted_qa)
 
