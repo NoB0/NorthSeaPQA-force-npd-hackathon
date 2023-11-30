@@ -9,7 +9,7 @@ It consists of questions posed on a set of passages from NPD documents, where th
 
 ## Data format
 
-The dataset is provided in JSON format, following SQuAD v2.0 format.
+The dataset is provided in JSON format.
 
 ## License
 
