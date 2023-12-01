@@ -141,8 +141,7 @@ def main(args) -> None:
     test = data[data["keep"] == 1]
     print(f"Test size: {len(test)}")
     # Train contains QA pairs not manually checked.
-    train = data[data["keep"] != 0]
-    train = train[train["keep"] != 1]
+    train = data[(data["keep"] != 0) & (data["keep"] != 1)]
     print(f"Train size: {len(train)}")
     # train, test = train_test_split(data, test_size=0.2, random_state=42)
 

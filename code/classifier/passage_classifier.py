@@ -112,7 +112,6 @@ def main(args: argparse.Namespace) -> None:
         report_to="wandb",
         logging_steps=1,
         learning_rate=1e-4,
-        num_train_epochs=1,
     )
 
     metrics = [evaluate.load(m) for m in ["f1", "precision", "recall"]]
@@ -146,9 +145,21 @@ def main(args: argparse.Namespace) -> None:
     outputs = trainer.predict(dataset["test"])
     predicted_labels = np.argmax(outputs[0], axis=1)
     predicted_labels = [
-        dataset["test"].features["label"].int2str(p) for p in predicted_labels
+        dataset["test"].features["label"].int2str(int(p))
+        for p in predicted_labels
     ]
-    dataset["test"]["predicted_label"] = predicted_labels
+    gold_labels = [
+        dataset["test"].features["label"].int2str(int(p))
+        for example in dataset["test"]
+        for p in example["label"]
+    ]
+    dataset["test"] = dataset["test"].add_column(
+        "predicted_label", predicted_labels
+    )
+    dataset["test"] = dataset["test"].add_column("gold_label", gold_labels)
+    dataset["test"] = dataset["test"].remove_columns(
+        ["input_ids", "token_type_ids", "attention_mask"]
+    )
     dataset["test"].to_csv("data/test_predictions.csv")
 
 
