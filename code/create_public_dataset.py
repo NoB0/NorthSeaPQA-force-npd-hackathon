@@ -8,7 +8,7 @@ from typing import Any, Dict, List
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
-DATA_PATH = "data/QA_pairs_clean.csv"
+DATA_PATH = "data/QA_pairs_clean2.csv"
 OUTPUT_DIR = "data/"
 VERSION = "1.0"
 
@@ -139,8 +139,11 @@ def main(args) -> None:
 
     # Test contains QA pairs manually checked.
     test = data[data["keep"] == 1]
+    print(f"Test size: {len(test)}")
     # Train contains QA pairs not manually checked.
-    train = data[data["keep"] == 0]
+    train = data[data["keep"] != 0]
+    train = train[train["keep"] != 1]
+    print(f"Train size: {len(train)}")
     # train, test = train_test_split(data, test_size=0.2, random_state=42)
 
     for name, split in zip(["train", "test"], [train, test]):
