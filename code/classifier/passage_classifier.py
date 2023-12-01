@@ -148,15 +148,9 @@ def main(args: argparse.Namespace) -> None:
         dataset["test"].features["label"].int2str(int(p))
         for p in predicted_labels
     ]
-    gold_labels = [
-        dataset["test"].features["label"].int2str(int(p))
-        for example in dataset["test"]
-        for p in example["label"]
-    ]
     dataset["test"] = dataset["test"].add_column(
         "predicted_label", predicted_labels
     )
-    dataset["test"] = dataset["test"].add_column("gold_label", gold_labels)
     dataset["test"] = dataset["test"].remove_columns(
         ["input_ids", "token_type_ids", "attention_mask"]
     )
