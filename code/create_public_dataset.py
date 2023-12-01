@@ -8,7 +8,8 @@ from typing import Any, Dict, List
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
-DATA_DIR = "data"
+DATA_PATH = "data/QA_pairs_clean.csv"
+OUTPUT_DIR = "data/"
 VERSION = "1.0"
 
 
@@ -20,35 +21,35 @@ def parse_args() -> argparse.Namespace:
     """
     parser = argparse.ArgumentParser(prog="data_format.py")
     parser.add_argument(
-        "--data_dir",
+        "--data_path",
         type=str,
-        default=DATA_DIR,
-        help="Directory containing the data.",
+        default=DATA_PATH,
+        help="Path to the CSV data.",
     )
     parser.add_argument(
         "--output_dir",
         type=str,
-        default=DATA_DIR,
+        default=OUTPUT_DIR,
         help="Directory to save the data.",
     )
 
-    return parser.parse_args(args)
+    return parser.parse_args()
 
 
-def load_data(data_dir: str) -> pd.DataFrame:
-    """Loads the data from the data directory.
+def load_data(data_path: str) -> pd.DataFrame:
+    """Loads the data from the data path.
 
     The data is expected to be in a csv with the at least the following columns:
     type, doc_id, passage_id, passage, question, answer_span, and answer_text.
 
     Args:
-        data_dir: The directory containing the data.
+        data_path: Path to the data.
 
     Returns:
         A pandas dataframe containing the data.
     """
     logging.info("Loading data...")
-    data = pd.read_csv(f"{data_dir}/data.csv")
+    data = pd.read_csv(data_path)
     return data
 
 
@@ -82,13 +83,17 @@ def format_document(passages: pd.DataFrame, doc_id: str) -> Dict[str, Any]:
     passage_qas = passages.groupby("passage_id")
     for passage_id, passage in passage_qas:
         logging.info(f"Formatting passage {passage_id}...")
-        formatted_passage = {"context": passage["passage"].iloc[0], "qas": []}
+        formatted_passage = {
+            "context": passage["passage"].iloc[0],
+            "qas": [],
+            "metadata": {"well_name": passage["well_name"].iloc[0]},
+        }
 
         for i, qa in passage.iterrows():
             answer = (
                 {
                     "text": qa["answer_text"],
-                    "answer_start": qa["answer_span"],
+                    "span": qa["answer_span"],
                 }
                 if not pd.isna(qa["answer_span"])
                 else {}
@@ -130,11 +135,15 @@ def main(args) -> None:
     """Formats the data for public release."""
     output_dir = args.output_dir
 
-    data = load_data(args.data_dir)
-    train, test = train_test_split(data, test_size=0.2, random_state=42)
-    test, val = train_test_split(test, test_size=0.5, random_state=42)
+    data = load_data(args.data_path)
 
-    for name, split in zip(["train", "val", "test"], [train, val, test]):
+    # Test contains QA pairs manually checked.
+    test = data[data["keep"] == 1]
+    # Train contains QA pairs not manually checked.
+    train = data[data["keep"] == 0]
+    # train, test = train_test_split(data, test_size=0.2, random_state=42)
+
+    for name, split in zip(["train", "test"], [train, test]):
         formatted_data = format_dataset(split)
         with open(f"{output_dir}/{name}.json", "w") as f:
             json.dump(formatted_data, f, indent=4)
