@@ -4,13 +4,10 @@ import argparse
 import collections
 import json
 import re
-import statistics
 import string
 from typing import Any, Dict
 
 from sacrebleu.metrics import BLEU
-
-OPTS = None
 
 
 def parse_args() -> argparse.Namespace:
@@ -96,24 +93,6 @@ def compute_f1_score(prediction: str, ground_truth: str) -> float:
     return (2 * precision * recall) / (precision + recall)
 
 
-def compute_bleu_score(prediction: str, ground_truth: str) -> float:
-    """Computes BLEU score between prediction and ground truth.
-
-    Args:
-        prediction: Prediction.
-        ground_truth: Ground truth.
-
-    Returns:
-        BLEU score.
-    """
-    bleu = BLEU()
-    prediction_text = normalize_answer(prediction)
-    ground_truth_text = normalize_answer(ground_truth)
-    return bleu.corpus_score(
-        prediction_text, [[ground_truth_text]], tokenize="none"
-    ).score
-
-
 def get_scores(
     dataset: Dict[str, Any], predictions: Dict[str, Any]
 ) -> Dict[str, Any]:
@@ -128,7 +107,8 @@ def get_scores(
     """
     exact_matches = {}
     f1_scores = {}
-    bleu_scores = {}
+    text_predictions = []
+    text_gold = []
     for article in dataset:
         for p in article["paragraphs"]:
             for qa in p["qas"]:
@@ -138,25 +118,27 @@ def get_scores(
                     continue
                 predicted_answer_span = predictions[qid].get("span", "")
                 predicted_answer_text = predictions[qid].get("text", "")
+                text_predictions.append(predicted_answer_text)
                 gold_answer_span = qa.get("answer", {}).get("span", "")
                 gold_answer_text = qa.get("answer", {}).get("text", "")
+                text_gold.append(gold_answer_text)
                 exact_matches[qid] = compute_exact_match(
                     predicted_answer_span, gold_answer_span
                 )
                 f1_scores[qid] = compute_f1_score(
                     predicted_answer_span, gold_answer_span
                 )
-                bleu_scores[qid] = compute_bleu_score(
-                    predicted_answer_text, gold_answer_text
-                )
 
     assert len(exact_matches) == len(f1_scores)
     total = len(exact_matches)
 
+    bleu = BLEU()
+    bleu_score = bleu.corpus_score(text_gold, [text_predictions]).score
+
     return {
         "exact_match": 100.0 * sum(exact_matches.values()) / total,
         "f1": 100.0 * sum(f1_scores.values()) / total,
-        "bleu": statistics.mean(list(bleu_scores.values())),
+        "bleu": bleu_score,
     }
 
 
