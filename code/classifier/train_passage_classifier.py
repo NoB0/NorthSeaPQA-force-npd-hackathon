@@ -23,9 +23,9 @@ os.environ["WANDB_LOG_MODEL"] = "checkpoint"
 
 
 MODEL_NAME = "bert-base-uncased"
-DATA_PATH = "data/annotates_good_text.xlsm"
+DATA_PATH = "data/classification/annotates_good_text.xlsm"
 COLUMNS = ["_id", "cat", "content_scrubbed_light", "label"]
-OUTPUT_DIR = "data/models"
+OUTPUT_DIR = "data/model"
 
 
 def parse_args() -> argparse.Namespace:
@@ -103,8 +103,15 @@ def main(args: argparse.Namespace) -> None:
     print(f"Dataset: {dataset['test'].features}")
     data_collator = DataCollatorWithPadding(tokenizer=tokenizer)
 
+    label_feature = dataset["train"].features["label"]
+    id2label = {
+        label_feature.str2int(label): label
+        for label in dataset["train"].features["label"].names
+    }
     model = AutoModelForSequenceClassification.from_pretrained(
-        args.model_name, num_labels=num_labels
+        args.model_name,
+        num_labels=num_labels,
+        id2label=id2label,
     )
     training_args = TrainingArguments(
         output_dir=args.output_dir,
@@ -141,6 +148,9 @@ def main(args: argparse.Namespace) -> None:
     test_metrics = trainer.evaluate(dataset["test"])
     print(f"Test metrics: {test_metrics}")
 
+    # Save the model.
+    trainer.save_model(args.output_dir)
+
     # Save test predictions.
     outputs = trainer.predict(dataset["test"])
     predicted_labels = np.argmax(outputs[0], axis=1)
@@ -154,7 +164,8 @@ def main(args: argparse.Namespace) -> None:
     dataset["test"] = dataset["test"].remove_columns(
         ["input_ids", "token_type_ids", "attention_mask"]
     )
-    dataset["test"].to_csv("data/test_predictions.csv")
+    print("Saving test prediction to data/classification/test_predictions.csv")
+    dataset["test"].to_csv("data/classification/test_predictions.csv")
 
 
 if __name__ == "__main__":

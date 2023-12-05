@@ -164,3 +164,5 @@ cython_debug/
 
 *.xlsx
 wandb/*
+data/classification/model/*
+data/classification/test_predictions.csv
