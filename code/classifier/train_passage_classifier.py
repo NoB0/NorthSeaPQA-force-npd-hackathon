@@ -25,7 +25,7 @@ os.environ["WANDB_LOG_MODEL"] = "checkpoint"
 MODEL_NAME = "bert-base-uncased"
 DATA_PATH = "data/classification/annotates_good_text.xlsm"
 COLUMNS = ["_id", "cat", "content_scrubbed_light", "label"]
-OUTPUT_DIR = "data/model"
+OUTPUT_DIR = "data/classification/model"
 
 
 def parse_args() -> argparse.Namespace:
