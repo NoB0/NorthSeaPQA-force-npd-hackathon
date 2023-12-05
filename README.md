@@ -1,16 +1,23 @@
-# [Dataset name]
+# FORCE NPD LLM Hackathon
 
-[Dataset] is a reading comprehension dataset tailored to the oil and gas domain.
-It consists of questions posed on a set of passages from NPD documents, where the answer to each question is extracted from the corresponding passage. Note that some questions may be unanswerable.
+This repository contains data and code produced during the FORCE NPD LLM Hackathon.
 
-## Data curation
+During this hackathon, we worked on two tasks:
 
-<!-- TODO: Add comments on how the dataset was created and some information on its content (e.g., size) -->
+  - The generation of Question-Answer (QA) pairs from documents related to the oil and gas domain. More details on the newly created dataset NorthSeaPQA can be found [here](code/qa_generation/README.md).
+  - The classification of passages from the same documents. More details are available [here](code/classifier/README.md).
 
-## Data format
+## Team
 
-The dataset is provided in JSON format.
+  - Henri Blondelle
+  - Akram Ourir
+  - Eirik Morken
+  - Aleksander B. Jakobsen
+  - Nolwenn Bernard
 
 ## License
 
-TBD
+The dataset NorthSeaPQA is licensed under the [Norwegian Licence for Open Government Data (NLOD) 2.0](https://data.norge.no/nlod/en/2.0).
+The rest of the data available in this repository is also licensed under the Norwegian Licence for Open Government Data (NLOD) 2.0.
+
+Code in this repository is licensed under the [MIT license](https://opensource.org/license/mit/).
